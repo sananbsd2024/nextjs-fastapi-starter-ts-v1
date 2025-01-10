@@ -1,5 +1,5 @@
-import { connectToDatabase } from "@/app/dbConnect";
-import User from '@/app/db/Schema/UserSchema'
+import { connectToDatabase } from "@/app/utils/db/dbConnect";
+import User from '@/app/utils/Schema/UserSchema'
 import { NextResponse } from "next/server";
 
 // Connect to the database
