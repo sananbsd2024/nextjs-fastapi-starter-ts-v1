@@ -1,74 +1,40 @@
-import { connectToDatabase } from "@/app/utils/db/dbConnect";
-import User from '@/app/utils/Schema/UserSchema'
+import { connectToDatabase } from "@/app/lib/mongodb";
+import User from "@/app/models/User";
 import { NextResponse } from "next/server";
 
-// Connect to the database
-connectToDatabase();
-
-// POST handler to add a new user
-export async function POST(request: Request) {
+export const GET = async () => {
   try {
-    const { fname, lname, email, phone, city, gender }: {
-      fname: string;
-      lname: string;
-      email: string;
-      phone: string;
-      city: string;
-      gender: string;
-    } = await request.json();
-
-    const regDate = new Date();
-
-    // Check if user with the same email already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return NextResponse.json({
-        success: false,
-        message: "This Email already exists.",
-      });
-    }
-
-    // Create and save a new user
-    const newUser = new User({
-      fname,
-      lname,
-      email,
-      phone,
-      city,
-      gender,
-      createAt: regDate,
-    });
-
-    await newUser.save();
-
-    return NextResponse.json({
-      success: true,
-      message: "New User Saved in the Database!",
-    });
-  } catch (error) {
-    console.error("Error saving user:", error);
-    return NextResponse.json({
-      success: false,
-      message: "Internal Server Error! Please try again later.",
-    });
-  }
-}
-
-// GET handler to fetch all users
-export async function GET() {
-  try {
-    // Fetch all users from the database
-    const allUsers = await User.find();
-
-    return NextResponse.json({
-      success: true,
-      data: allUsers,
-    });
+    await connectToDatabase();
+    const users = await User.find({});
+    return NextResponse.json({ message: "Users retrieved successfully!", users });
   } catch (error) {
     console.error("Error fetching users:", error);
-    return NextResponse.json({
-      success: false,
-      message: "Unable to fetch users. Please try again later.",
-    });
+    return NextResponse.json({ error: "Failed to fetch users." }, { status: 500 });
   }
-}
+};
+
+export const POST = async (req: Request) => {
+  try {
+    await connectToDatabase();
+
+    const { fname, lname, email, phone, city, gender } = await req.json();
+
+    if (!fname || !lname || !email || !phone || !city || !gender) {
+      return NextResponse.json(
+        { error: "All fields are required." },
+        { status: 400 }
+      );
+    }
+
+    const newUser = new User({ fname, lname, email, phone, city, gender });
+    await newUser.save();
+
+    return NextResponse.json(
+      { message: "User created successfully!", user: newUser },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return NextResponse.json({ error: "Failed to create user." }, { status: 500 });
+  }
+};
