@@ -1,5 +1,5 @@
-import { connectToDatabase } from "@/app/lib/mongodb";
-import User from "@/app/models/User";
+import { connectToDatabase } from "../../app/lib/mongodb";
+import User from "../../app/models/User";
 import { NextResponse } from "next/server";
 
 export const GET = async (req: Request) => {
